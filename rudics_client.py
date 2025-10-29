@@ -185,11 +185,20 @@ def thread_function(q, thread_num):
             gpus = queue_item['gpus']
             process = subprocess.Popen(command.split(' '))
             p = psutil.Process(process.pid)
+
             while process.poll() is None: # Still running
                 if host_busy:
                     p.suspend()
+                    children = p.children(recursive=True)
+                    for child in children:
+                        logger.info(f"Suspending child process: {child.pid} ({child.name()})")
+                        child.suspend()
                 if not host_busy and p.status() == psutil.STATUS_STOPPED:
                     p.resume()
+                    children = p.children(recursive=True)
+                    for child in children:
+                        logger.info(f"Resuming child process: {child.pid} ({child.name()})")
+                        child.resume()
                 time.sleep(2)
             logger.debug(f"{thread_num}: {queue_item}")
             used_cpu_cores = used_cpu_cores + cpus
