@@ -25,9 +25,6 @@ default_config_values = {}
 temp_log_list = []
 q = queue.Queue()
 host_busy = False
-used_cpu_cores = 0
-used_memory_bytes = 0
-used_gpus = 0
 exit_event = threading.Event()
 threads = []
 
@@ -125,38 +122,34 @@ def signal_handler(signum, frame):
 
 def callback_thread(q, url, interval, ignore_cert):
     global host_busy
-    global used_cpu_cores
-    global used_memory_bytes
-    global used_gpus
     global usable_memory_bytes
     global usable_cpu_cores
     global usable_gpus
     print("Started callback thread")
     try:
         while not exit_event.is_set():
-            available_cpus = usable_cpu_cores - used_cpu_cores
-            available_gpus = usable_gpus - used_gpus
-            available_memory = usable_memory_bytes - used_memory_bytes
+            logger.info(f"Available Resources: cpu - {usable_cpu_cores}, mem - {usable_memory_bytes}, gpus - {usable_gpus}")
             try:
                 if ignore_cert.upper() == 'TRUE': # use the value from config to determine if we should ignore cert issues
                     verify_value = True
                 else:
                     verify_value = False
-                url = f"{url}?cpus={available_cpus}&mem={available_memory}&gpu={available_gpus}"
-                response = requests.get(url, verify=verify_value)
-                response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
-                data = response.json()
-                if len(data) > 0: # Watch for a blank return meaning we have nothing to give
-                    logger.debug(f"Successfully retrieved JSON data: {json.dumps(data)}")
-                    for item in data:
-                        # Update the global values so everyone knows where we stand on resources
-                        cpus = item['cpus']
-                        used_cpu_cores = used_cpu_cores - cpus
-                        mem = item['memory']
-                        used_memory_bytes = used_memory_bytes - mem
-                        gpus = item['gpus']
-                        used_gpus = used_gpus - gpus
-                        q.put(item) # Push the entire json blob to the queue
+                if usable_cpu_cores > 0:
+                    url = f"{url}?cpus={usable_cpu_cores}&mem={usable_memory_bytes}&gpu={usable_memory_bytes}"
+                    response = requests.get(url, verify=verify_value)
+                    response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
+                    data = response.json()
+                    if len(data) > 0: # Watch for a blank return meaning we have nothing to give
+                        logger.debug(f"Successfully retrieved JSON data: {json.dumps(data)}")
+                        for item in data:
+                            # Update the global values so everyone knows where we stand on resources
+                            cpus = item['cpus']
+                            usable_cpu_cores -= cpus
+                            mem = item['memory']
+                            usable_memory_bytes -= mem
+                            gpus = item['gpus']
+                            usable_gpus -= gpus
+                            q.put(item) # Push the entire json blob to the queue
             except requests.exceptions.HTTPError as e:
                 logger.error(f"HTTP Error: {e}")
             except requests.exceptions.RequestException as e:
@@ -171,9 +164,9 @@ def callback_thread(q, url, interval, ignore_cert):
 
 def thread_function(q, thread_num):
     global host_busy
-    global used_cpu_cores
-    global used_memory_bytes
-    global used_gpus
+    global usable_memory_bytes
+    global usable_cpu_cores
+    global usable_gpus
     print(f"Thread {thread_num} started")
     try:
         while not exit_event.is_set():
@@ -200,10 +193,11 @@ def thread_function(q, thread_num):
                         logger.info(f"Resuming child process: {child.pid} ({child.name()})")
                         child.resume()
                 time.sleep(2)
+            # TODO: Capture cputime etc and send back to rudics server 
             logger.debug(f"{thread_num}: {queue_item}")
-            used_cpu_cores = used_cpu_cores + cpus
-            used_memory_bytes = used_memory_bytes + mem
-            used_gpus = used_gpus + gpus
+            usable_cpu_cores += cpus
+            usable_memory_bytes +=  mem
+            usable_gpus +=  gpus
             q.task_done()
     except KeyboardInterrupt:
         print("\nCtrl+C detected. Exiting gracefully.")
