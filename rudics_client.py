@@ -143,12 +143,9 @@ def callback_thread(q, url, interval, ignore_cert):
                         logger.debug(f"Successfully retrieved JSON data: {json.dumps(data)}")
                         for item in data:
                             # Update the global values so everyone knows where we stand on resources
-                            cpus = item['cpus']
-                            usable_cpu_cores -= cpus
-                            mem = item['memory']
-                            usable_memory_bytes -= mem
-                            gpus = item['gpus']
-                            usable_gpus -= gpus
+                            usable_cpu_cores -= item['cpus']
+                            usable_memory_bytes -= item['memory']
+                            usable_gpus -= item['gpus']
                             q.put(item) # Push the entire json blob to the queue
             except requests.exceptions.HTTPError as e:
                 logger.error(f"HTTP Error: {e}")
