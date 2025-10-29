@@ -12,7 +12,7 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
 
         response_data = [
             {
-                "command": "example_app\y-cruncher\y-cruncher.exe bench 250m -TD:2 -PF:none",
+                "command": "python demo_cpu_app.py",
                 "cpus": 1,
                 "memory": 1024,
                 "gpus": 0
