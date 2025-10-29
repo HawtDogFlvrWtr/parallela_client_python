@@ -12,7 +12,7 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
 
         response_data = [
             {
-                "command": "python demo_cpu_app.py",
+                "command": "python demos/demo_cpu_app.py",
                 "cpus": 1,
                 "memory": 1024,
                 "gpus": 0
