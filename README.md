@@ -28,42 +28,42 @@ resume_after_idle_secs
 suspend_when_not_idle_secs [Default 5]
 > The number of seconds the system has NOT been idle before suspending work. This ensures we don't stop work if the mouse was hit with no intention of using the system
 
-log_level
-> The level at which we should log. [DEBUG, INFO*, WARNING, ERROR, CRITICAL]
+log_level [DEBUG, INFO*, WARNING, ERROR, CRITICAL]
+> The level at which we should log.
 
-log_max_size_mb
-> The max size the log will be before it's rotated for archival purposes [Default 100]
+log_max_size_mb [Default 100]
+> The max size the log will be before it's rotated for archival purposes
 
-log_max_rotation_count
-> The max number of rotated logs to maintain before removing them [Default 5]
+log_max_rotation_count [Default 5]
+> The max number of rotated logs to maintain before removing them
 
-user_interaction_check_secs
-> The interval at which we check if the system is idle or not [Default 5]
+user_interaction_check_secs [Default 5]
+> The interval at which we check if the system is idle or not
 
-checkpoint_interval_mins
-> The number of minutes after which we should send checkpoint data back to the server [Default 10]
+checkpoint_interval_mins [Default 10]
+> The number of minutes after which we should send checkpoint data back to the server
 
-launch_as_submitter
-> Should we run the work as the user who submitted it? (This will fail if the host doesn't have an account for this user) [True/False*]
+launch_as_submitter [True/False*]
+> Should we run the work as the user who submitted it? (This will fail if the host doesn't have an account for this user)
 
-server_address
-> The web URL for the server [Default http://rudics_server]
+server_address [Default http://rudics_server]
+> The web URL for the server or cache proxy to the server
 
-server_callback_interval_secs
-> How often we should send status updates and request work from the server in seconds [Default 5]
+server_callback_interval_secs [Default 5]
+> How often we should send status updates and request work from the server in seconds
 
-ignore_server_cert
-> Set to true if you're using self signed certificates on your webserver. [True*/False]
+ignore_server_cert [True*/False]
+> Set to true if you're using self signed certificates on your webserver.
 
 ### PARTITIONING Section (* Items signify the default)
-partition_system
-> Should we use multiple resources on the system (true) or treat the machine as a single resource (false). A true value will leverage the config items below [True*/False]
+partition_system [True*/False]
+> Should we use multiple resources on the system (true) or treat the machine as a single resource (false). A true value will leverage the config items below
 
-partition_max_cpus
-> The number or percentage of CPUs we should use on this system for jobs. For percentage values, a second % symbol should be used to escape the value. [1-x, Default 100%%]
+partition_max_cpus [1-x, Default 100%%]
+> The number or percentage of CPUs we should use on this system for jobs. For percentage values, a second % symbol should be used to escape the value.
 
-partition_max_memory
-> The amount or percentage of Memory we should use on this system for jobs. For percentage values, a second % symbol should be used to escape the value. [1-x, Default 100%%]
+partition_max_memory [1-x, Default 100%%]
+> The amount or percentage of Memory we should use on this system for jobs. For percentage values, a second % symbol should be used to escape the value.
 
-partition_max_gpus
-> The number or percentage of GPUs we should use on this system for jobs. For percentage values, a second % symbol should be used to escape the value. [1-x, Default 100%%]
+partition_max_gpus [0-x, Default 100%%]
+> The number or percentage of GPUs we should use on this system for jobs. For percentage values, a second % symbol should be used to escape the value. There is an assumption that if you specify a gpu, at least 1 cpu will be associated with the job
