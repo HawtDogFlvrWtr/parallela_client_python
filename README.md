@@ -19,11 +19,11 @@ pip install -r requirements.txt
 ## Config Items (The default config settings are in rudics_client_defaults.conf)
 
 ### SYSTEM section (* Items signify the default)
-only_when_idle
-> Ensures the client only runs work when the host is idle [True/False*]
+only_when_idle [True/False*]
+> Ensures the client only runs work when the host is idle
 
-resume_after_idle_secs
-> The number of seconds the system should be idle before resuming [Default 500]
+resume_after_idle_secs [Default 500]
+> The number of seconds the system should be idle before resuming
 
 suspend_when_not_idle_secs [Default 5]
 > The number of seconds the system has NOT been idle before suspending work. This ensures we don't stop work if the mouse was hit with no intention of using the system
