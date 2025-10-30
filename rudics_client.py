@@ -15,6 +15,7 @@ import math
 import signal
 from classes.gpu_detector import GPUDetector
 from logging.handlers import RotatingFileHandler
+from dbus_idle import IdleMonitor
 
 parser = argparse.ArgumentParser(description='Rudics client', epilog='Thanks for using this program!')
 parser.add_argument('-c', '--config_path', help='The path to the client config file (rudics_client.conf)', default="rudics_client.conf")
@@ -216,6 +217,24 @@ ignore_server_cert = default_config_values['SYSTEM']['ignore_server_cert']
 requests_thread = threading.Thread(target=callback_thread, args=(q, server_address, callback_interval, ignore_server_cert,))
 requests_thread.start()
 threads.append(requests_thread)
+
+# Spin until we find an exit
+check_idle_seconds = int(default_config_values['SYSTEM']['user_interaction_check_secs'])
+resume_after_idle_secs = int(default_config_values['SYSTEM']['resume_after_idle_secs'])
+suspend_when_not_idle_secs = int(default_config_values['SYSTEM']['suspend_when_not_idle_secs'])
+
+while True:
+    try:
+        idle_s = IdleMonitor().get_dbus_idle() * 1000
+        if not host_busy and idle_s >= suspend_when_not_idle_secs:
+            host_busy = True
+        elif host_busy and idle_s >= resume_after_idle_secs:
+            host_busy = False
+        time.sleep(check_idle_seconds) # Sleep based on config value
+    except KeyboardInterrupt:
+        print("\nCtrl+C detected. Exiting gracefully.")
+        # Perform any necessary cleanup here
+        print("Cleanup complete.")
 
 # if we exit, we need to join the threads
 for t in threads:

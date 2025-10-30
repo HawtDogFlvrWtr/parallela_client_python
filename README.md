@@ -2,7 +2,7 @@
 
 ### Python version and Libraries
 ```
-python >= 3.11.9
+python >= 3.7
 pip install -r requirements.txt
 ```
 
