@@ -12,10 +12,22 @@ class MyHandler(http.server.BaseHTTPRequestHandler):
 
         response_data = [
             {
-                "command": "python demos/demo_cpu_app.py",
-                "cpus": 1,
-                "memory": 1024,
-                "gpus": 0
+                "id": 1,
+                "user_id": 1,
+                "bundle_id": '',
+                "linked_job_queue_id": '',
+                "count": 1,
+                "count_finished": 0,
+                "metadata": [
+                    {
+                        "command": "python demos/demo_cpu_app.py",
+                        "cpus": 1,
+                        "memory": 1024,
+                        "gpus": 0
+                    }
+                ],
+                "created_at": "2025-10-31T19:50:56.000000Z",
+                "updated_at": "2025-10-31T19:50:56.000000Z"
             }
         ]
         self.wfile.write(json.dumps(response_data).encode("utf-8"))

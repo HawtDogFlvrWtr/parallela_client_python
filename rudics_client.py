@@ -74,6 +74,7 @@ for section_name in config.sections():
 
 # Configure basic logging and rotation handler after config overrides
 config_log_level = default_config_values['SYSTEM']['log_level'].upper()
+api_key = default_config_values['SYSTEM']['api_key']
 max_log_bytes = int(default_config_values['SYSTEM']['log_max_size_mb']) * 1_048_576
 log_max_rotation_count = int(default_config_values['SYSTEM']['log_max_rotation_count'])
 logger.setLevel(config_log_level)
@@ -120,7 +121,7 @@ def signal_handler(signum, frame):
     print("\nCtrl+C detected. Setting exit flag...")
     exit_event.set()
 
-def callback_thread(q, url, interval, ignore_cert):
+def callback_thread(q, url, interval, ignore_cert, api_key):
     global host_busy
     global usable_memory_bytes
     global usable_cpu_cores
@@ -135,18 +136,23 @@ def callback_thread(q, url, interval, ignore_cert):
                 else:
                     verify_value = False
                 if usable_cpu_cores > 0:
-                    url = f"{url}?cpus={usable_cpu_cores}&mem={usable_memory_bytes}&gpu={usable_memory_bytes}"
-                    response = requests.get(url, verify=verify_value)
+                    headers = {
+                        "Authorization": f"Bearer {api_key}",
+                        "Accept": "application/json",
+                    }
+                    url = f"{url}/api/get_jobs/?cpus={usable_cpu_cores}&mem={usable_memory_bytes}&gpu={usable_memory_bytes}"
+                    response = requests.get(url, verify=verify_value, headers=headers)
                     response.raise_for_status()  # Raise an exception for HTTP errors (4xx or 5xx)
                     data = response.json()
                     if len(data) > 0: # Watch for a blank return meaning we have nothing to give
                         logger.debug(f"Successfully retrieved JSON data: {json.dumps(data)}")
-                        for item in data:
-                            # Update the global values so everyone knows where we stand on resources
-                            usable_cpu_cores -= item['cpus']
-                            usable_memory_bytes -= item['memory']
-                            usable_gpus -= item['gpus']
-                            q.put(item) # Push the entire json blob to the queue
+                        for record in data:
+                            for command in record['metadata']:
+                                # Update the global values so everyone knows where we stand on resources
+                                usable_cpu_cores -= command['cpus']
+                                usable_memory_bytes -= command['memory']
+                                usable_gpus -= command['gpus']
+                                q.put(command) # Push the entire dictionary to the queue
             except requests.exceptions.HTTPError as e:
                 logger.error(f"HTTP Error: {e}")
             except requests.exceptions.RequestException as e:
@@ -213,7 +219,7 @@ server_address = default_config_values['SYSTEM']['server_address']
 callback_interval = default_config_values['SYSTEM']['server_callback_interval_secs']
 ignore_server_cert = default_config_values['SYSTEM']['ignore_server_cert']
 
-requests_thread = threading.Thread(target=callback_thread, args=(q, server_address, callback_interval, ignore_server_cert,))
+requests_thread = threading.Thread(target=callback_thread, args=(q, server_address, callback_interval, ignore_server_cert, api_key,))
 requests_thread.start()
 threads.append(requests_thread)
 
