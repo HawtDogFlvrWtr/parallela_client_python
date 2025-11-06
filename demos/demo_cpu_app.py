@@ -2,9 +2,17 @@ import multiprocessing
 import time
 import random
 import sys
+import argparse
 
-def f():
-    random_seconds = random.randint(10, 60)
+parser = argparse.ArgumentParser(description='parallela demo cpu consumer', epilog='Thanks for using this test app.')
+parser.add_argument('--min', help='The path to the client config file (parallela_client.conf)', default=10)
+parser.add_argument('--max', help='The path to the client config file (parallela_client.conf)', default=60)
+parser.add_argument('--threads', help='The number of threads to launch the application with', default=1)
+args = parser.parse_args()
+
+def f(iter, min, max):
+    print(f"Starting thread {iter}")
+    random_seconds = random.randint(min, max)
     print(f"Running for {random_seconds} seconds")
     start_time = time.time()
     end_time = start_time + random_seconds
@@ -15,9 +23,10 @@ def f():
 
 if __name__ == "__main__":
     processes = []
-    p = multiprocessing.Process(target=f)
-    p.start()
-    processes.append(p)
+    for i in range(args.threads):
+        p = multiprocessing.Process(target=f, args=(i,args.min, args.max, ))
+        p.start()
+        processes.append(p)
     
     p.join()
     print("Exited")
