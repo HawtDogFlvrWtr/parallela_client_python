@@ -1,4 +1,4 @@
-# RUDICS CLIENT WRITTEN IN PYTHON FOR TESTING
+# parallela CLIENT WRITTEN IN PYTHON FOR TESTING
 
 ## Python version and Libraries
 ```
@@ -16,7 +16,7 @@ pip install -r requirements.txt
 }
 ```
 
-## Config Items (The default config settings are in rudics_client_defaults.conf)
+## Config Items (The default config settings are in parallela_client_defaults.conf)
 
 ### SYSTEM section (* Items signify the default)
 only_when_idle [True/False*]
@@ -46,7 +46,7 @@ checkpoint_interval_mins [Default 10]
 launch_as_submitter [True/False*]
 > Should we run the work as the user who submitted it? (This will fail if the host doesn't have an account for this user)
 
-server_address [Default http://rudics_server]
+server_address [Default http://parallela_server]
 > The web URL for the server or cache proxy to the server
 
 server_callback_interval_secs [Default 5]

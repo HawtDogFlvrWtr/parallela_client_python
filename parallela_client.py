@@ -17,10 +17,10 @@ from classes.gpu_detector import GPUDetector
 from logging.handlers import RotatingFileHandler
 #from dbus_idle import IdleMonitor
 
-parser = argparse.ArgumentParser(description='Rudics client', epilog='Thanks for using this program!')
-parser.add_argument('-c', '--config_path', help='The path to the client config file (rudics_client.conf)', default="rudics_client.conf")
-parser.add_argument('-dc', '--default_config_path', help='The path to the client config file (rudics_client.conf)', default="rudics_client_defaults.conf")
-parser.add_argument('-l', '--log_path', help="The path to the default log file", default='rudics_client.log')
+parser = argparse.ArgumentParser(description='parallela client', epilog='Thanks for using this program!')
+parser.add_argument('-c', '--config_path', help='The path to the client config file (parallela_client.conf)', default="parallela_client.conf")
+parser.add_argument('-dc', '--default_config_path', help='The path to the client config file (parallela_client.conf)', default="parallela_client_defaults.conf")
+parser.add_argument('-l', '--log_path', help="The path to the default log file", default='parallela_client.log')
 args = parser.parse_args()
 default_config_values = {}
 temp_log_list = []
@@ -30,7 +30,7 @@ exit_event = threading.Event()
 threads = []
 
 # Open and read default config
-default_config = configparser.ConfigParser()
+default_config = configparser.ConfigParser(interpolation=None)
 default_config.read(args.default_config_path)
 
 # Opena nd read override config
@@ -147,13 +147,11 @@ def callback_thread(q, url, interval, ignore_cert, api_key):
                     data = response.json()
                     if len(data) > 0: # Watch for a blank return meaning we have nothing to give
                         logger.debug(f"Successfully retrieved JSON data: {json.dumps(data)}")
-                        for record in data:
-                            for command in record['metadata']:
-                                # Update the global values so everyone knows where we stand on resources
-                                usable_cpu_cores -= command['cpus']
-                                usable_memory_bytes -= command['memory']
-                                usable_gpus -= command['gpus']
-                                q.put(command) # Push the entire dictionary to the queue
+                        # Update the global values so everyone knows where we stand on resources
+                        usable_cpu_cores -= data['cpus']
+                        usable_memory_bytes -= data['memory']
+                        usable_gpus -= data['gpus']
+                        q.put(data) # Push the entire json blob to the queue
             except requests.exceptions.HTTPError as e:
                 logger.error(f"HTTP Error: {e}")
             except requests.exceptions.RequestException as e:
@@ -199,7 +197,7 @@ def thread_function(q, thread_num):
                     time.sleep(2)
             except psutil.NoSuchProcess:
                 print(f"Process with PID {p} exited")
-            # TODO: Capture cputime etc and send back to rudics server 
+            # TODO: Capture cputime etc and send back to parallela server 
             logger.debug(f"{thread_num}: {queue_item}")
             usable_cpu_cores += cpus
             usable_memory_bytes +=  mem
